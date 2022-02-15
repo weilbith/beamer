@@ -47,7 +47,7 @@ jobs:
           key: poetry-2-${{ runner.os }}-${{ hashFiles('.github/workflows/ci.yml', 'poetry.lock') }}
 
       - name: Install ganache
-        run: npm install ganache-cli --global
+        run: npm install ganache --global
 
       - name: Install dependencies
         run: poetry install
@@ -96,11 +96,11 @@ jobs:
           # Start ganache separately so that brownie does not need to start
           # it. If brownie starts ganache, it will remove the generated
           # deployment artifacts after it is done.
-          ganache-cli --accounts 10 --hardfork istanbul --gasLimit 12000000 --mnemonic brownie --port 8545 -q &
+          ganache --accounts 10 --hardfork london --gasLimit 12000000 --mnemonic brownie --port 8545 -q &
           pushd contracts && poetry run brownie run deploy && popd
           killall node
 
-          poetry run brownie test beamer/tests -v -G --cov beamer --cov-report=term
+          poetry run brownie test beamer/tests -vs -G --cov beamer --cov-report=term
 
       - name: Load images from cache
         uses: satackey/action-docker-layer-caching@v0.0.11
