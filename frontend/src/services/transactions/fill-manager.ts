@@ -35,8 +35,8 @@ export async function listenOnFulfillment(
   });
 
   return Promise.race([fulfillmentPromise, timeoutPromise])
-    .then((fullRequestId) => {
-      return fullRequestId;
+    .then((fillRequestId) => {
+      return fillRequestId;
     })
     .catch((err) => {
       throw err;
