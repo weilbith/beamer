@@ -21,6 +21,7 @@
       #[slotName]="option: SelectorOption"
     >
       <img v-if="option.imageUrl" class="vs__option-image" :src="option.imageUrl" />
+      <div v-else></div>
       <span>{{ option.label }}</span>
     </template>
 
@@ -65,7 +66,11 @@ const props = defineProps<Props>();
 .selector .vs__dropdown-option,
 .selector .vs__selected,
 .selector.vs--open .vs__search {
-  @apply h-18 w-full m-0 pl-4 py-3 border-0 text-2xl text-teal flex flex-row gap-2 items-center justify-between overflow-hidden;
+  @apply h-18 w-full m-0 pl-4 py-3 border-0 text-2xl text-teal flex flex-row gap-2 items-center justify-between overflow-hidden text-right;
+}
+
+.selector.vs--open .vs__selected {
+  @apply pr-[1.35rem];
 }
 
 .selector .vs__search {
@@ -89,7 +94,7 @@ const props = defineProps<Props>();
 }
 
 .selector .vs__search::placeholder {
-  @apply opacity-25 text-black text-left pl-4;
+  @apply opacity-25 text-black text-right pr-8;
 }
 
 .selector .vs__no-options {
