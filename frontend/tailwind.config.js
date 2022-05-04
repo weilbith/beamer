@@ -20,6 +20,7 @@ module.exports = {
       'orange-light': '#EEAC96',
       transparent: 'transparent',
       black: '#000000',
+      'modal-background': 'rgba(0, 0, 0, 0.4)',
     },
     boxShadow: {
       DEFAULT: '0px 4px 26px rgba(0, 0, 0, 0.25)',
