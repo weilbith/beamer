@@ -1,5 +1,11 @@
-import { ChainConfig, Token } from '@/types/config';
-import { RequestMetadata } from '@/types/data';
+import type { StepData } from '@/actions/steps';
+import type {
+  RequestFillTransactionMetadata,
+  RequestTransactionMetadata,
+  TransferData,
+} from '@/actions/transfer';
+import type { ChainWithTokens } from '@/types/config';
+import type { Chain, Token } from '@/types/data';
 
 const HEXADECIMAL_CHARACTERS = '0123456789abcdefABCDEF';
 const DECIMAL_CHARACTERS = '0123456789';
@@ -39,38 +45,78 @@ export function getRandomDecimalPointNumber(): string {
   return `${beforeDot}.${afterDot}`;
 }
 
+export function getRandomNumber(minimum = 1, maximum = 100): number {
+  return Math.floor(Math.random() * maximum + minimum);
+}
+
+export function generateStepData(partialStepData?: Partial<StepData>): StepData {
+  return {
+    identifier: getRandomString(ALPHABET_CHARACTERS, 10),
+    label: getRandomString(ALPHABET_CHARACTERS, 15, 'label '),
+    ...partialStepData,
+  };
+}
 export function generateToken(partialToken?: Partial<Token>): Token {
   return {
     address: getRandomEthereumAddress(),
     symbol: getRandomTokenSymbol(),
+    decimals: getRandomNumber(10, 20),
     ...partialToken,
-  } as Token;
-}
-
-export function generateChainConfiguration(
-  partialConfiguration?: Partial<ChainConfig>,
-): ChainConfig {
-  return {
-    requestManagerAddress: getRandomEthereumAddress(),
-    fillManagerAddress: getRandomEthereumAddress(),
-    explorerTransactionUrl: getRandomUrl('explorer'),
-    rpcUrl: getRandomUrl('rpc'),
-    name: getRandomChainName(),
-    tokens: [generateToken()],
-    ...partialConfiguration,
   };
 }
 
-export function generateRequestMetadata(
-  partialRequestMetadata?: Partial<RequestMetadata>,
-): RequestMetadata {
+export function generateChain(partialChain?: Partial<Chain>): Chain {
   return {
-    amount: getRandomDecimalPointNumber(),
-    sourceChainName: getRandomChainName(),
-    targetChainName: getRandomChainName(),
-    targetAddress: getRandomEthereumAddress(),
-    tokenSymbol: getRandomTokenSymbol(),
-    fee: getRandomDecimalPointNumber(),
-    ...partialRequestMetadata,
+    identifier: getRandomNumber(), // TODO
+    name: getRandomChainName(),
+    rpcUrl: getRandomUrl('rpc'),
+    requestManagerAddress: getRandomEthereumAddress(),
+    fillManagerAddress: getRandomEthereumAddress(),
+    explorerTransactionUrl: getRandomUrl('explorer'),
+    ...partialChain,
+  };
+}
+
+export function generateChainWithTokens(
+  partialChainWithTokens?: Partial<ChainWithTokens>,
+): ChainWithTokens {
+  return {
+    ...generateChain(),
+    tokens: [generateToken()],
+    ...partialChainWithTokens,
+  };
+}
+
+export function generateRequestTransactionMetadata(
+  partialRequestTransactionMetadata?: Partial<RequestTransactionMetadata>,
+): RequestTransactionMetadata {
+  return {
+    requestAccount: getRandomEthereumAddress(),
+    transactionHash: getRandomString(HEXADECIMAL_CHARACTERS, 40),
+    ...partialRequestTransactionMetadata,
+  };
+}
+
+export function generateRequestFillTransactionMetadata(
+  partialRequestFillTransactionMetadata?: Partial<RequestFillTransactionMetadata>,
+): RequestFillTransactionMetadata {
+  return {
+    fillerAccount: getRandomEthereumAddress(),
+    transactionHash: getRandomString(HEXADECIMAL_CHARACTERS, 40),
+    ...partialRequestFillTransactionMetadata,
+  };
+}
+
+export function generateTransferData(partialTransferData?: Partial<TransferData>): TransferData {
+  return {
+    amount: getRandomNumber(),
+    sourceChain: generateChain(),
+    sourceToken: generateToken(),
+    targetChain: generateChain(),
+    targetToken: generateToken(),
+    targetAccount: getRandomEthereumAddress(),
+    validityPeriod: getRandomNumber(),
+    fees: getRandomNumber(),
+    ...partialTransferData,
   };
 }

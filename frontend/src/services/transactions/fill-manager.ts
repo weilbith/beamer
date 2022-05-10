@@ -2,11 +2,10 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { Contract } from 'ethers';
 
 import FillManager from '@/assets/FillManager.json';
-import { Request } from '@/types/data';
 
 export async function listenOnFulfillment(
   targetNetworkProvider: JsonRpcProvider,
-  request: Request,
+  requestIdentifier: number,
   fillManagerAddress: string,
   currentBlockNumber: number,
 ): Promise<void> {
@@ -16,7 +15,7 @@ export async function listenOnFulfillment(
     targetNetworkProvider,
   );
 
-  const eventFilter = fillManagerContract.filters.RequestFilled(request.requestId);
+  const eventFilter = fillManagerContract.filters.RequestFilled(requestIdentifier);
   const events = await fillManagerContract.queryFilter(eventFilter, currentBlockNumber - 500);
   if (events.length > 0) return;
 

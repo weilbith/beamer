@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 
-import RequestSummary from '@/components/RequestSummary.vue';
+import TransferSummary from '@/components/TransferSummary.vue';
 import {
   getRandomChainName,
   getRandomDecimalPointNumber,
@@ -13,21 +13,21 @@ function createWrapper(options?: {
   tokenSymbol?: string;
   sourceChainName?: string;
   targetChainName?: string;
-  targetAddress?: string;
+  targetAccount?: string;
 }) {
-  return mount(RequestSummary, {
+  return mount(TransferSummary, {
     shallow: true,
     props: {
       amount: options?.amount ?? getRandomDecimalPointNumber(),
       tokenSymbol: options?.tokenSymbol ?? getRandomTokenSymbol(),
       sourceChainName: options?.sourceChainName ?? getRandomChainName(),
       targetChainName: options?.targetChainName ?? getRandomChainName(),
-      targetAddress: options?.targetAddress ?? getRandomEthereumAddress(),
+      targetAccount: options?.targetAccount ?? getRandomEthereumAddress(),
     },
   });
 }
 
-describe('RequestSummary.vue', () => {
+describe('TransferSummary.vue', () => {
   it('shows the amount', () => {
     const wrapper = createWrapper({ amount: '1.0' });
 
@@ -52,9 +52,9 @@ describe('RequestSummary.vue', () => {
     expect(wrapper.text()).toContain('Target Chain');
   });
 
-  it('shows the target address', () => {
-    const wrapper = createWrapper({ targetAddress: '0xTargetAddress' });
+  it('shows the target account', () => {
+    const wrapper = createWrapper({ targetAccount: '0xTargetAccount' });
 
-    expect(wrapper.text()).toContain('0xTargetAddress');
+    expect(wrapper.text()).toContain('0xTargetAccount');
   });
 });

@@ -1,19 +1,11 @@
+import type { Chain, Token } from './data';
+
+export interface ChainWithTokens extends Chain {
+  tokens: Token[];
+}
+
 export type BeamerConfig = {
   chains: {
-    [chainId: string]: ChainConfig;
+    [chainId: string]: ChainWithTokens;
   };
-};
-
-export type ChainConfig = {
-  requestManagerAddress: string;
-  fillManagerAddress: string;
-  explorerTransactionUrl: string;
-  rpcUrl: string;
-  name: string;
-  tokens: readonly Token[];
-};
-
-export type Token = {
-  address: string;
-  symbol: string;
 };

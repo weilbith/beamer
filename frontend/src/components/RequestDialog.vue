@@ -15,8 +15,8 @@
       @submit="submitRequestTransaction"
     >
       <Card class="bg-teal px-20 pt-18 pb-16 self-stretch mb-11">
-        <RequestFormInputs v-if="requestState === RequestState.Init" />
-        <RequestStatus v-else :metadata="requestMetadata!" :state="requestState" />
+        <RequestFormInputs v-if="!isTransferInProgress" />
+        <TransferStatus v-else :transfer="transfer" />
         <Transition name="expand">
           <div v-if="shownError" class="mt-7 text-right text-lg text-orange-dark">
             {{ shownError }}
@@ -38,19 +38,16 @@
       </div>
       <div v-else>
         <FormKit
-          v-if="requestState === RequestState.Init"
+          v-if="!isTransferInProgress"
           class="w-72 flex flex-row justify-center bg-green"
           type="submit"
           :disabled="!valid"
         >
-          <div v-if="requestTransactionActive" class="h-8 w-8">
-            <spinner></spinner>
-          </div>
-          <template v-else>Transfer funds</template>
+          Transfer funds
         </FormKit>
 
         <FormKit
-          v-if="requestState !== RequestState.Init"
+          v-if="transfer"
           input-class="w-72 flex flex-row justify-center bg-green"
           type="button"
           :disabled="isNewTransferDisabled"
@@ -63,23 +60,21 @@
 </template>
 
 <script setup lang="ts">
-import { JsonRpcProvider } from '@ethersproject/providers';
 import { FormKitFrameworkContext } from '@formkit/core';
 import { FormKit } from '@formkit/vue';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
+import { Transfer } from '@/actions/transfer';
 import Card from '@/components/layout/Card.vue';
 import RequestFormInputs from '@/components/RequestFormInputs.vue';
-import RequestStatus from '@/components/RequestStatus.vue';
 import Spinner from '@/components/Spinner.vue';
+import TransferStatus from '@/components/TransferStatus.vue';
 import { useRequestFee } from '@/composables/useRequestFee';
 import { useRequestSigner } from '@/composables/useRequestSigner';
-import { useRequestTransaction } from '@/composables/useRequestTransaction';
-import { useWaitForRequestFulfilment } from '@/composables/useWaitForRequestFulfilment';
 import { useConfiguration } from '@/stores/configuration';
 import { useEthereumProvider } from '@/stores/ethereum-provider';
-import { Request, RequestMetadata, RequestState } from '@/types/data';
+import type { Chain } from '@/types/data';
 import type { SelectorOption } from '@/types/form';
 
 interface Emits {
@@ -90,26 +85,16 @@ const emit = defineEmits<Emits>();
 
 const configuration = useConfiguration();
 const ethereumProvider = useEthereumProvider();
-const { provider, signer, chainId } = storeToRefs(ethereumProvider);
+const { provider, signer, signerAddress, chainId } = storeToRefs(ethereumProvider);
 
-const requestMetadata = ref<RequestMetadata>();
+const transfer = ref<Transfer | undefined>(undefined);
 const requestForm = ref<FormKitFrameworkContext>();
-
-const transactionError = ref('');
 
 const requestManagerAddress = computed(
   () => configuration.chains[chainId.value]?.requestManagerAddress,
 );
 
 const { amount: requestFeeAmount } = useRequestFee(provider, requestManagerAddress);
-
-const {
-  active: requestTransactionActive,
-  state: requestState,
-  run: executeRequestTransaction,
-} = useRequestTransaction();
-
-const { run: waitForRequestFulfilment } = useWaitForRequestFulfilment();
 
 const {
   run: requestSigner,
@@ -125,16 +110,10 @@ const runRequestSigner = () => {
   }
 };
 
-const getTargetTokenAddress = (targetChainId: number, tokenSymbol: string) => {
-  return configuration.chains[targetChainId].tokens.find((token) => token.symbol === tokenSymbol)
-    ?.address as string;
-};
-
 const newTransfer = async () => {
   emit('reload');
 };
 
-// TODO improve types
 const submitRequestTransaction = async (formResult: {
   amount: string;
   fromChainId: SelectorOption;
@@ -146,65 +125,64 @@ const submitRequestTransaction = async (formResult: {
     throw new Error('No signer available!');
   }
 
-  const request: Request = {
-    targetChainId: Number(formResult.toChainId.value),
-    sourceTokenAddress: formResult.tokenAddress.value,
-    sourceChainId: Number(formResult.fromChainId.value),
-    targetTokenAddress: getTargetTokenAddress(
-      formResult.toChainId.value,
-      formResult.tokenAddress.label,
-    ),
-    targetAddress: formResult.toAddress,
-    amount: formResult.amount,
+  const sourceChainConfiguration = configuration.chains[formResult.fromChainId.value];
+  const sourceChain: Chain = {
+    identifier: sourceChainConfiguration.identifier,
+    name: sourceChainConfiguration.name,
+    rpcUrl: sourceChainConfiguration.rpcUrl,
+    requestManagerAddress: sourceChainConfiguration.requestManagerAddress,
+    fillManagerAddress: sourceChainConfiguration.fillManagerAddress,
+    explorerTransactionUrl: sourceChainConfiguration.explorerTransactionUrl,
   };
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const sourceToken = sourceChainConfiguration.tokens.find(
+    (token) => token.symbol === formResult.tokenAddress.label,
+  )!;
 
-  requestMetadata.value = {
-    tokenSymbol: formResult.tokenAddress.label,
-    sourceChainName: formResult.fromChainId.label,
-    targetChainName: formResult.toChainId.label,
-    targetAddress: request.targetAddress,
-    amount: formResult.amount,
+  const targetChainConfiguration = configuration.chains[formResult.toChainId.value];
+  const targetChain: Chain = {
+    identifier: targetChainConfiguration.identifier,
+    name: targetChainConfiguration.name,
+    rpcUrl: targetChainConfiguration.rpcUrl,
+    requestManagerAddress: targetChainConfiguration.requestManagerAddress,
+    fillManagerAddress: targetChainConfiguration.fillManagerAddress,
+    explorerTransactionUrl: targetChainConfiguration.explorerTransactionUrl,
   };
-  (request.fee = requestFeeAmount.value), (transactionError.value = '');
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const targetToken = targetChainConfiguration.tokens.find(
+    (token) => token.symbol === formResult.tokenAddress.label,
+  )!;
 
-  const targetChainRpcUrl = configuration.chains[formResult.toChainId.value].rpcUrl;
-  const targetChainProvider = new JsonRpcProvider(targetChainRpcUrl);
-  const fillManagerAddress = configuration.chains[formResult.toChainId.value].fillManagerAddress;
+  transfer.value = new Transfer({
+    amount: Number(formResult.amount),
+    sourceChain,
+    sourceToken,
+    targetChain,
+    targetToken,
+    targetAccount: formResult.toAddress,
+    validityPeriod: 600,
+    fees: requestFeeAmount.value,
+  });
 
   try {
-    await executeRequestTransaction(
-      provider.value,
-      signer.value,
-      requestManagerAddress.value,
-      request,
-    );
-    await waitForRequestFulfilment(targetChainProvider, fillManagerAddress, request, requestState);
+    await transfer.value.execute(signer.value, signerAddress.value);
   } catch (error) {
-    const maybeErrorMessage = (error as { message?: string }).message;
-    if (maybeErrorMessage) {
-      transactionError.value = maybeErrorMessage;
-    } else {
-      transactionError.value = 'Unknown failure!';
-    }
+    console.error(error);
+    console.log(transfer.value);
   }
 };
 
 watch(chainId, () => location.reload());
 
+const isTransferInProgress = computed(() => {
+  return transfer.value && (transfer.value.active || transfer.value.done);
+});
+
 const isNewTransferDisabled = computed(() => {
-  return (
-    requestState.value !== RequestState.RequestSuccessful &&
-    requestState.value !== RequestState.RequestFailed
-  );
+  return transfer.value !== undefined && !transfer.value.done;
 });
 
 const shownError = computed(() => {
-  return requestSignerError.value || transactionError.value;
-});
-
-watch(shownError, async () => {
-  if (shownError.value && requestState.value !== RequestState.RequestFailed) {
-    requestState.value = RequestState.Init;
-  }
+  return requestSignerError.value || transfer.value?.errorMessage;
 });
 </script>
