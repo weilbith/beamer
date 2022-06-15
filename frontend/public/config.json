@@ -1,30 +1,30 @@
 {
   "chains": {
-    "28": {
-      "identifier": 28,
-      "requestManagerAddress": "0xB46A49174488190f5E452Ba51083C0624e2606a6",
-      "fillManagerAddress": "0x761781173963f8c8b34b690FA6b3006e820a8C89",
-      "explorerTransactionUrl": "https://blockexplorer.rinkeby.boba.network/tx/",
-      "rpcUrl": "https://rinkeby.boba.network/",
-      "name": "Boba Rinkeby",
+    "288": {
+      "identifier": 288,
+      "requestManagerAddress": "0x4047E89783dd447C2B81BD7D15659B8Ce87Cb856",
+      "fillManagerAddress": "0x286a3c14bE1a98589831f92850E89723Ce666589",
+      "explorerTransactionUrl": "https://blockexplorer.boba.network/tx/",
+      "rpcUrl": "https://mainnet.boba.network",
+      "name": "Boba Network",
       "tokens": [
         {
-          "address": "0x2644292EE5aed5c17BDcc6EDF1696ba802351cf6",
+          "address": "0x0c277D6C3da73bfcF0C45C8014b09650984ebbeE",
           "symbol": "TST",
           "decimals": 18
         }
       ]
     },
-    "588": {
-      "identifier": 588,
-      "requestManagerAddress": "0xB46A49174488190f5E452Ba51083C0624e2606a6",
-      "fillManagerAddress": "0x761781173963f8c8b34b690FA6b3006e820a8C89",
-      "explorerTransactionUrl": "https://stardust-explorer.metis.io/tx/",
-      "rpcUrl": "https://stardust.metis.io/?owner=588",
-      "name": "Metis Stardust",
+    "10": {
+      "identifier": 10,
+      "requestManagerAddress": "0x34040c8f02Bb178f6D8dCe9C3F497da6bB986bEd",
+      "fillManagerAddress": "0xc0810b2a924dED2e47DD724E411BB430856e4dDC",
+      "explorerTransactionUrl": "https://optimistic.etherscan.io/tx/",
+      "rpcUrl": "https://mainnet.optimism.io",
+      "name": "Optimism",
       "tokens": [
         {
-          "address": "0xAcF5e964b76773166F69d6E53C1f7A9114a8E01D",
+          "address": "0x2242D9950F7C4DAe23C2983B5734d25eBAD7B101",
           "symbol": "TST",
           "decimals": 18
         }
