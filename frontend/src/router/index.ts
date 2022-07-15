@@ -9,6 +9,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Home',
     component: Home,
   },
+  {
+    path: '/timer',
+    name: 'Timer',
+    component: () => import('@/views/Timer.vue'),
+  },
 ];
 
 const router = createRouter({

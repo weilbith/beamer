@@ -13,6 +13,20 @@ function getContract(rpcUrl: string, address: EthereumAddress): Contract {
   return new Contract(address, RequestManager.abi, provider);
 }
 
+export function waitForNextRequest(
+  rpcUrl: string,
+  requestManagerAddress: string,
+): Promise<UInt256> {
+  const contract = getContract(rpcUrl, requestManagerAddress);
+  const filter = contract.filters.RequestCreated();
+
+  return new Promise((resolve) => {
+    contract.once(filter, (requestIdentifier) => {
+      resolve(new UInt256(requestIdentifier.toString()));
+    });
+  });
+}
+
 export async function getRequestFee(
   rpcUrl: string,
   requestManagerAddress: string,
