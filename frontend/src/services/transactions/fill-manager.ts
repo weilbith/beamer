@@ -66,7 +66,9 @@ export function waitForFulfillment(
   requestIdentifier: UInt256,
   fromBlockNumber: number,
 ): Cancelable<void> {
-  const contract = getContract(rpcUrl, fillManagerAddress);
+  const provider = new JsonRpcProvider(rpcUrl);
+  provider.pollingInterval = 1000
+  const contract = new Contract(fillManagerAddress, FillManager.abi, provider);
   const eventFilter = contract.filters.RequestFilled(BigNumber.from(requestIdentifier.asString));
   const promise = new Promise<void>((resolve) => {
     const cleanUpAndResolve = () => {

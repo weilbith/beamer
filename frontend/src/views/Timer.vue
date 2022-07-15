@@ -23,15 +23,15 @@ const targetChain = computed(() => configuration.chains[588]);
 const backgroundClasses = ref({});
 
 function formatTime(milliseconds: number): string {
-  const beforeDot = Math.floor(milliseconds / 1000);
-  const afterDot = Math.floor((milliseconds % 1000) / 100);
+  const beforeDot = milliseconds.toString().slice(0, -3) ?? 0;
+  const afterDot = milliseconds.toString().slice(-3, -1) ?? 0;
 
-  return `${beforeDot}.${afterDot}`;
+  return `${beforeDot ? beforeDot : 0}.${afterDot ? afterDot : '00'}`;
 }
 
 function startTimer(): void {
   time.value = 0;
-  const intervalDuration = 100;
+  const intervalDuration = 10;
   const incrementTime = () => (time.value += intervalDuration);
 
   timerInterval.value = setInterval(incrementTime, intervalDuration);
